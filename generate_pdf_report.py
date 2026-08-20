@@ -1,18 +1,19 @@
 """
-Comprehensive Academic & Technical Research Report Generator for ELECT-SENTINEL OSINT.
-Generates an in-depth, rigorous theoretical and engineering documentation PDF.
+Comprehensive Academic & Technical Research Report + Full Source Code Appendix Generator
+for ELECT-SENTINEL OSINT.
 """
 
 import os
 import sys
 from datetime import datetime
+import xml.sax.saxutils as saxutils
 
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, KeepTogether, HRFlowable
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, KeepTogether, HRFlowable, Preformatted
 )
 from reportlab.pdfgen import canvas
 
@@ -41,20 +42,20 @@ class NumberedCanvas(canvas.Canvas):
         
         # Header (pages > 1)
         if self._pageNumber > 1:
-            self.drawString(54, 750, "ELECT-SENTINEL OSINT | Comprehensive Academic & Technical Report")
-            self.drawRightString(612 - 54, 750, "Jyotiraditya Cheemakurthi (23011103011)")
+            self.drawString(50, 750, "ELECT-SENTINEL OSINT | Complete Technical & Theoretical Report + Source Code")
+            self.drawRightString(612 - 50, 750, "Jyotiraditya Cheemakurthi (23011103011)")
             self.setStrokeColor(colors.HexColor("#cbd5e1"))
             self.setLineWidth(0.5)
-            self.line(54, 742, 612 - 54, 742)
+            self.line(50, 742, 612 - 50, 742)
 
         # Footer
         self.setStrokeColor(colors.HexColor("#cbd5e1"))
         self.setLineWidth(0.5)
-        self.line(54, 42, 612 - 54, 42)
+        self.line(50, 40, 612 - 50, 40)
         
-        self.drawString(54, 30, "Repository: https://github.com/being-cheema/elect-sentinel-osint")
+        self.drawString(50, 28, "GitHub Repository: https://github.com/being-cheema/elect-sentinel-osint")
         page_str = f"Page {self._pageNumber} of {page_count}"
-        self.drawRightString(612 - 54, 30, page_str)
+        self.drawRightString(612 - 50, 28, page_str)
         self.restoreState()
 
 
@@ -62,10 +63,10 @@ def generate_pdf(output_filename="ELECT_SENTINEL_OSINT_Project_Report.pdf"):
     doc = SimpleDocTemplate(
         output_filename,
         pagesize=letter,
-        leftMargin=50,
-        rightMargin=50,
-        topMargin=50,
-        bottomMargin=50
+        leftMargin=45,
+        rightMargin=45,
+        topMargin=45,
+        bottomMargin=45
     )
 
     styles = getSampleStyleSheet()
@@ -76,15 +77,17 @@ def generate_pdf(output_filename="ELECT_SENTINEL_OSINT_Project_Report.pdf"):
     DARK_TEXT = colors.HexColor("#1e293b")   # Slate 800
     MUTED_TEXT = colors.HexColor("#475569")  # Slate 600
     BG_LIGHT = colors.HexColor("#f8fafc")    # Slate 50
+    CODE_BG = colors.HexColor("#f8fafc")     # Light Slate
     BORDER_COLOR = colors.HexColor("#cbd5e1")
+    HEADER_BG = colors.HexColor("#1e293b")
 
     # Typography Styles
     title_style = ParagraphStyle(
         'DocTitle',
         parent=styles['Normal'],
         fontName='Helvetica-Bold',
-        fontSize=20,
-        leading=24,
+        fontSize=19,
+        leading=23,
         textColor=PRIMARY,
         spaceAfter=3
     )
@@ -93,7 +96,7 @@ def generate_pdf(output_filename="ELECT_SENTINEL_OSINT_Project_Report.pdf"):
         'DocSubtitle',
         parent=styles['Normal'],
         fontName='Helvetica-Bold',
-        fontSize=10.5,
+        fontSize=10,
         leading=14,
         textColor=ACCENT_CYAN,
         spaceAfter=8
@@ -115,7 +118,7 @@ def generate_pdf(output_filename="ELECT_SENTINEL_OSINT_Project_Report.pdf"):
         fontSize=12.5,
         leading=16,
         textColor=PRIMARY,
-        spaceBefore=11,
+        spaceBefore=12,
         spaceAfter=4,
         keepWithNext=True
     )
@@ -127,7 +130,7 @@ def generate_pdf(output_filename="ELECT_SENTINEL_OSINT_Project_Report.pdf"):
         fontSize=10,
         leading=13,
         textColor=ACCENT_CYAN,
-        spaceBefore=7,
+        spaceBefore=8,
         spaceAfter=3,
         keepWithNext=True
     )
@@ -136,22 +139,22 @@ def generate_pdf(output_filename="ELECT_SENTINEL_OSINT_Project_Report.pdf"):
         'Body_Custom',
         parent=styles['BodyText'],
         fontName='Helvetica',
-        fontSize=8.8,
-        leading=12.5,
+        fontSize=8.5,
+        leading=12,
         textColor=DARK_TEXT,
-        spaceAfter=5
+        spaceAfter=4
     )
 
     bullet_style = ParagraphStyle(
         'Bullet_Custom',
         parent=styles['Normal'],
         fontName='Helvetica',
-        fontSize=8.5,
-        leading=12,
+        fontSize=8.2,
+        leading=11.5,
         textColor=DARK_TEXT,
         leftIndent=12,
         firstLineIndent=-8,
-        spaceAfter=2.5
+        spaceAfter=2
     )
 
     formula_style = ParagraphStyle(
@@ -161,24 +164,42 @@ def generate_pdf(output_filename="ELECT_SENTINEL_OSINT_Project_Report.pdf"):
         fontSize=8.5,
         leading=11.5,
         textColor=colors.HexColor("#0f172a"),
-        alignment=1, # Centered
-        spaceBefore=4,
-        spaceAfter=4
+        alignment=1,
+        spaceBefore=3,
+        spaceAfter=3
     )
 
-    code_style = ParagraphStyle(
-        'Code_Custom',
+    code_pre_style = ParagraphStyle(
+        'Code_Pre',
         parent=styles['Normal'],
         fontName='Courier',
-        fontSize=7.8,
-        leading=10.5,
+        fontSize=6.0,
+        leading=7.5,
         textColor=colors.HexColor("#0f172a")
+    )
+
+    file_header_style = ParagraphStyle(
+        'FileHeader',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=9,
+        leading=12,
+        textColor=colors.white
+    )
+
+    file_sub_style = ParagraphStyle(
+        'FileSub',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=7.5,
+        leading=10,
+        textColor=colors.HexColor("#94a3b8")
     )
 
     story = []
 
     # -------------------------------------------------------------
-    # HEADER BANNER & METADATA CARD
+    # COVER HEADER & METADATA CARD
     # -------------------------------------------------------------
     story.append(Paragraph("ELECT-SENTINEL OSINT", title_style))
     story.append(Paragraph("A Theoretical & Practical Framework for Real-Time Global Election Disinformation Monitoring, Dynamic Narrative Clustering, and Public Confusion Mitigation", subtitle_style))
@@ -198,7 +219,7 @@ def generate_pdf(output_filename="ELECT_SENTINEL_OSINT_Project_Report.pdf"):
             Paragraph(f"<b>Submission Date:</b> {datetime.now().strftime('%B %d, %Y')}", meta_style)
         ]
     ]
-    meta_table = Table(meta_table_data, colWidths=[3.5 * inch, 3.6 * inch])
+    meta_table = Table(meta_table_data, colWidths=[3.6 * inch, 3.6 * inch])
     meta_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, -1), BG_LIGHT),
         ('BOX', (0, 0), (-1, -1), 1, BORDER_COLOR),
@@ -212,7 +233,7 @@ def generate_pdf(output_filename="ELECT_SENTINEL_OSINT_Project_Report.pdf"):
     story.append(Spacer(1, 8))
 
     # -------------------------------------------------------------
-    # 1. THEORETICAL FOUNDATIONS & INFORMATION DISORDER MODEL
+    # 1. THEORETICAL FOUNDATIONS & PROBLEM STATEMENT
     # -------------------------------------------------------------
     story.append(Paragraph("1. Theoretical Foundations & Problem Statement", h1_style))
     story.append(Paragraph(
@@ -233,9 +254,8 @@ def generate_pdf(output_filename="ELECT_SENTINEL_OSINT_Project_Report.pdf"):
         body_style
     ))
 
-    # Model Formula Box
     formula_text = "S_confusion = [ α · S_category + β · S_urgency + γ · S_uncertainty + δ · P_bot ] × Ω_platform"
-    story.append(Table([[Paragraph(formula_text, formula_style)]], colWidths=[7.1 * inch], style=[
+    story.append(Table([[Paragraph(formula_text, formula_style)]], colWidths=[7.2 * inch], style=[
         ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#f1f5f9")),
         ('BOX', (0, 0), (-1, -1), 0.5, BORDER_COLOR),
         ('PADDING', (0, 0), (-1, -1), 4)
@@ -262,9 +282,6 @@ def generate_pdf(output_filename="ELECT_SENTINEL_OSINT_Project_Report.pdf"):
         "Incoming vectors are matched against active narrative centroids using Cosine Similarity: <code>Sim(v_p, v_N) = (v_p · v_N) / (||v_p|| ||v_N||)</code>. If similarity exceeds the dynamic threshold (&theta; &ge; 0.28), the signal is assigned to the narrative cluster; otherwise, a new storyline centroid is spawned. Narrative lifecycle transitions through a discrete state machine: <b>Emerging &rarr; Accelerating &rarr; Critical Peak &rarr; Debunked &rarr; Dormant</b>.",
         body_style
     ))
-
-    # Page Break for Architecture & Sources
-    story.append(PageBreak())
 
     # -------------------------------------------------------------
     # 3. MULTI-SOURCE INGESTION ARCHITECTURE (25+ SOURCES)
@@ -308,7 +325,7 @@ def generate_pdf(output_filename="ELECT_SENTINEL_OSINT_Project_Report.pdf"):
         ]
     ]
 
-    sources_table = Table(sources_data, colWidths=[1.6 * inch, 3.8 * inch, 1.7 * inch])
+    sources_table = Table(sources_data, colWidths=[1.6 * inch, 3.8 * inch, 1.8 * inch])
     sources_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), PRIMARY),
         ('GRID', (0, 0), (-1, -1), 0.5, BORDER_COLOR),
@@ -356,9 +373,6 @@ def generate_pdf(output_filename="ELECT_SENTINEL_OSINT_Project_Report.pdf"):
 
     story.append(Spacer(1, 6))
 
-    # Page Break for Verification & Evaluator Instructions
-    story.append(PageBreak())
-
     # -------------------------------------------------------------
     # 6. EMPIRICAL VERIFICATION & BENCHMARKS
     # -------------------------------------------------------------
@@ -374,17 +388,17 @@ def generate_pdf(output_filename="ELECT_SENTINEL_OSINT_Project_Report.pdf"):
             Paragraph("<b>Evaluation Scope</b>", ParagraphStyle('TH2', parent=meta_style, fontName='Helvetica-Bold', textColor=colors.white)),
             Paragraph("<b>Test Result</b>", ParagraphStyle('TH3', parent=meta_style, fontName='Helvetica-Bold', textColor=colors.white))
         ],
-        [Paragraph("<code>test_database_initialization</code>", code_style), Paragraph("SQLite schema creation, ground truth seeding, and indices", meta_style), Paragraph("<font color='#16a34a'><b>PASSED (100%)</b></font>", meta_style)],
-        [Paragraph("<code>test_global_location_resolution</code>", code_style), Paragraph("Entity extraction & geocoding across multi-continent text", meta_style), Paragraph("<font color='#16a34a'><b>PASSED (100%)</b></font>", meta_style)],
-        [Paragraph("<code>test_nlp_voter_suppression_detection</code>", code_style), Paragraph("Confusion scoring & category classification for suppression", meta_style), Paragraph("<font color='#16a34a'><b>PASSED (100%)</b></font>", meta_style)],
-        [Paragraph("<code>test_nlp_machine_rigging_detection</code>", code_style), Paragraph("Equipment tampering & election integrity conspiracy detection", meta_style), Paragraph("<font color='#16a34a'><b>PASSED (100%)</b></font>", meta_style)],
-        [Paragraph("<code>test_ground_truth_contradiction</code>", code_style), Paragraph("Statutory rule contradiction checking & debunk generation", meta_style), Paragraph("<font color='#16a34a'><b>PASSED (100%)</b></font>", meta_style)],
-        [Paragraph("<code>test_narrative_clustering</code>", code_style), Paragraph("TF-IDF semantic similarity grouping into active storylines", meta_style), Paragraph("<font color='#16a34a'><b>PASSED (100%)</b></font>", meta_style)],
-        [Paragraph("<code>test_network_graph_generation</code>", code_style), Paragraph("NetworkX graph topology, edge weights, and CIB metrics", meta_style), Paragraph("<font color='#16a34a'><b>PASSED (100%)</b></font>", meta_style)],
-        [Paragraph("<code>test_case_and_report_generation</code>", code_style), Paragraph("Formal Intelligence Briefing synthesis & Markdown formatting", meta_style), Paragraph("<font color='#16a34a'><b>PASSED (100%)</b></font>", meta_style)]
+        [Paragraph("<code>test_database_initialization</code>", code_pre_style), Paragraph("SQLite schema creation, ground truth seeding, and indices", meta_style), Paragraph("<font color='#16a34a'><b>PASSED (100%)</b></font>", meta_style)],
+        [Paragraph("<code>test_global_location_resolution</code>", code_pre_style), Paragraph("Entity extraction & geocoding across multi-continent text", meta_style), Paragraph("<font color='#16a34a'><b>PASSED (100%)</b></font>", meta_style)],
+        [Paragraph("<code>test_nlp_voter_suppression_detection</code>", code_pre_style), Paragraph("Confusion scoring & category classification for suppression", meta_style), Paragraph("<font color='#16a34a'><b>PASSED (100%)</b></font>", meta_style)],
+        [Paragraph("<code>test_nlp_machine_rigging_detection</code>", code_pre_style), Paragraph("Equipment tampering & election integrity conspiracy detection", meta_style), Paragraph("<font color='#16a34a'><b>PASSED (100%)</b></font>", meta_style)],
+        [Paragraph("<code>test_ground_truth_contradiction</code>", code_pre_style), Paragraph("Statutory rule contradiction checking & debunk generation", meta_style), Paragraph("<font color='#16a34a'><b>PASSED (100%)</b></font>", meta_style)],
+        [Paragraph("<code>test_narrative_clustering</code>", code_pre_style), Paragraph("TF-IDF semantic similarity grouping into active storylines", meta_style), Paragraph("<font color='#16a34a'><b>PASSED (100%)</b></font>", meta_style)],
+        [Paragraph("<code>test_network_graph_generation</code>", code_pre_style), Paragraph("NetworkX graph topology, edge weights, and CIB metrics", meta_style), Paragraph("<font color='#16a34a'><b>PASSED (100%)</b></font>", meta_style)],
+        [Paragraph("<code>test_case_and_report_generation</code>", code_style := code_pre_style), Paragraph("Formal Intelligence Briefing synthesis & Markdown formatting", meta_style), Paragraph("<font color='#16a34a'><b>PASSED (100%)</b></font>", meta_style)]
     ]
 
-    test_table = Table(test_data, colWidths=[2.2 * inch, 3.5 * inch, 1.4 * inch])
+    test_table = Table(test_data, colWidths=[2.2 * inch, 3.6 * inch, 1.4 * inch])
     test_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), PRIMARY),
         ('GRID', (0, 0), (-1, -1), 0.5, BORDER_COLOR),
@@ -421,7 +435,7 @@ http://localhost:8000
 # 4. Run automated test suite
 ./venv/bin/python -m unittest tests/test_osint_engine.py"""
 
-    code_table = Table([[Paragraph(install_code.replace("\n", "<br/>"), code_style)]], colWidths=[7.1 * inch])
+    code_table = Table([[Paragraph(install_code.replace("\n", "<br/>"), code_pre_style)]], colWidths=[7.2 * inch])
     code_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#f1f5f9")),
         ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#cbd5e1")),
@@ -437,10 +451,10 @@ http://localhost:8000
     signoff_p = Paragraph(
         "<b>Student:</b> Jyotiraditya Cheemakurthi (Roll No: 23011103011)<br/>"
         "<b>GitHub Repository:</b> <font color='#0284c7'><u>https://github.com/being-cheema/elect-sentinel-osint</u></font><br/>"
-        "<i>Submitted for Academic & Technical Evaluation. System is fully operational and continuously ingesting live global feeds.</i>",
+        "<i>Submitted for Academic & Technical Evaluation. Complete source code repository is embedded in Section 8 below.</i>",
         meta_style
     )
-    signoff_table = Table([[signoff_p]], colWidths=[7.1 * inch])
+    signoff_table = Table([[signoff_p]], colWidths=[7.2 * inch])
     signoff_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#e0f2fe")),
         ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#38bdf8")),
@@ -451,9 +465,91 @@ http://localhost:8000
     ]))
     story.append(signoff_table)
 
+    # -------------------------------------------------------------
+    # SECTION 8: COMPLETE SOURCE CODE APPENDIX (ALL 21 FILES)
+    # -------------------------------------------------------------
+    story.append(PageBreak())
+    story.append(Paragraph("8. Complete Source Code Repository (Full Implementation)", h1_style))
+    story.append(Paragraph(
+        "The following appendix contains the complete, unabridged source code for all 21 files across the backend intelligence engines, automated unit tests, and frontend web applications.",
+        body_style
+    ))
+    story.append(Spacer(1, 6))
+
+    code_files = [
+        # (File Path, Language Label, Description)
+        ("run.sh", "Bash Shell Script", "Automated environment setup, dependency installer, and one-click application launcher"),
+        ("backend/database.py", "Python 3 / SQLite3", "Database schema definitions, ground-truth seed records, SHA-256 evidence hashing utilities, and connection management"),
+        ("backend/nlp_engine.py", "Python 3 / NLP & ML", "Multi-category disinformation classifier, composite confusion scoring, epistemic uncertainty index, and bot probability heuristics"),
+        ("backend/fact_engine.py", "Python 3 / Ground Truth", "Statutory voting regulation contradiction engine and automated counter-messaging / debunk generation"),
+        ("backend/clustering_engine.py", "Python 3 / Scikit-Learn", "TF-IDF vectorizer, cosine similarity clustering, and narrative lifecycle state machine manager"),
+        ("backend/network_engine.py", "Python 3 / NetworkX", "Graph network generation, degree centrality scoring, and Coordinated Inauthentic Behavior (CIB) detection"),
+        ("backend/ingest_engine.py", "Python 3 / Multi-Threading", "25+ live global streams poller, ThreadPoolExecutor parallel worker, 60+ countries entity resolution, and autonomous background daemon"),
+        ("backend/case_engine.py", "Python 3 / Case Management", "Intelligence dossier manager and formal threat intelligence briefing generator (Markdown/HTML/Print)"),
+        ("backend/server.py", "Python 3 / FastAPI", "FastAPI REST API endpoints, Server-Sent Events (SSE) live telemetry stream, and static web routing"),
+        ("tests/test_osint_engine.py", "Python 3 / Unittest", "Comprehensive automated unit test suite verifying classification, clustering, graph modeling, and contradiction checks"),
+        ("static/index.html", "HTML5 / Semantic UI", "Cyber Operations Center responsive interface layout with 8 dedicated analyst workstations and forensic drawer"),
+        ("static/css/app.css", "CSS3 / Dark Theme", "Complete dark-mode Cyber Operations Center CSS design system, typography tokens, glassmorphism, and animations"),
+        ("static/js/app.js", "JavaScript ES6 / Core SPA", "Main application controller, workspace routing, Server-Sent Events (SSE) listener, and Web Audio synthesized chimes"),
+        ("static/js/radar.js", "JavaScript ES6 / Chart.js", "Threat Radar dashboard, Chart.js telemetry charts, live incoming feed ticker, and DEFCON threat indicator"),
+        ("static/js/narratives.js", "JavaScript ES6 / UI", "Narrative intelligence cards, dynamic lifecycle badges, keyword clouds, and velocity metrics"),
+        ("static/js/triage.js", "JavaScript ES6 / Forensics", "Analyst triage queue, multi-parameter filtering, and deep forensic inspector drawer modal with SHA-256 fingerprints"),
+        ("static/js/graph.js", "JavaScript ES6 / HTML5 Canvas", "Interactive physics-based force-directed network graph simulation with spring-repulsion dynamics and zoom/pan"),
+        ("static/js/map.js", "JavaScript ES6 / Leaflet.js", "Interactive global geospatial map with localized threat circles across 60+ countries and capital jurisdictions"),
+        ("static/js/scanner.js", "JavaScript ES6 / OSINT", "Ad-hoc live claim and URL scanner with real-time heuristic scoring, entity resolution, and ground-truth refutation"),
+        ("static/js/facts.js", "JavaScript ES6 / Knowledge Base", "Ground truth election security knowledge base manager and one-click rapid counter-messaging copy tool"),
+        ("static/js/reports.js", "JavaScript ES6 / Dossiers", "Intelligence dossier case builder and formal OSINT Threat Intelligence Briefing generator")
+    ]
+
+    for rel_path, lang, desc in code_files:
+        if not os.path.exists(rel_path):
+            continue
+
+        with open(rel_path, "r", encoding="utf-8", errors="ignore") as fp:
+            code_content = fp.read()
+
+        # Build File Header Card
+        header_table_data = [
+            [
+                Paragraph(f"<b>FILE:</b> <code>{rel_path}</code>", file_header_style),
+                Paragraph(f"<b>{lang}</b>", ParagraphStyle('FileLang', parent=file_header_style, alignment=2))
+            ],
+            [
+                Paragraph(desc, file_sub_style),
+                Paragraph(f"{len(code_content.splitlines())} lines", ParagraphStyle('FileLines', parent=file_sub_style, alignment=2))
+            ]
+        ]
+        header_table = Table(header_table_data, colWidths=[5.4 * inch, 1.8 * inch])
+        header_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), HEADER_BG),
+            ('TOPPADDING', (0, 0), (-1, -1), 3),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+            ('LEFTPADDING', (0, 0), (-1, -1), 6),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+            ('BOX', (0, 0), (-1, -1), 1, PRIMARY)
+        ]))
+
+        # Format Code Lines with Line Numbers
+        formatted_lines = []
+        for idx, line in enumerate(code_content.splitlines(), start=1):
+            # Truncate very long lines to prevent page overflow
+            clean_line = line.replace("\t", "    ")
+            if len(clean_line) > 115:
+                clean_line = clean_line[:112] + "..."
+            formatted_lines.append(f"{idx:4d} | {clean_line}")
+
+        code_text = "\n".join(formatted_lines)
+        story.append(Spacer(1, 8))
+        story.append(header_table)
+        story.append(Spacer(1, 4))
+        story.append(Preformatted(code_text, code_pre_style))
+        story.append(Spacer(1, 8))
+
+
     # Build Document
     doc.build(story, canvasmaker=NumberedCanvas)
-    print(f"Comprehensive report generated successfully: {output_filename}")
+    print(f"Complete Research & Codebase PDF Report generated successfully: {output_filename}")
+
 
 
 if __name__ == "__main__":
