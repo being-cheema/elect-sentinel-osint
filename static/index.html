@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELECT-SENTINEL OSINT | Global Live Election Disinformation Intelligence Platform</title>
+    <meta name="description" content="Automated Global OSINT platform continuously monitoring 100% authentic, real-time live election content, public confusion patterns, and coordinated inauthentic behavior worldwide.">
+    
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <!-- App CSS -->
+    <link rel="stylesheet" href="/static/css/app.css">
+    
+    <!-- Chart.js & Leaflet JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+</head>
+<body class="dark-theme">
+    <!-- Top Cyber Command Header -->
+    <header class="command-header">
+        <div class="header-left">
+            <div class="brand-badge">
+                <div class="logo-shield">
+                    <i class="fa-solid fa-earth-americas"></i>
+                    <span class="pulse-ring"></span>
+                </div>
+                <div class="brand-titles">
+                    <h1 class="brand-name">ELECT-SENTINEL <span class="osint-tag">GLOBAL LIVE</span></h1>
+                    <span class="brand-sub">100% REAL-TIME GLOBAL ELECTION THREAT INTELLIGENCE</span>
+                </div>
+            </div>
+            <div class="telemetry-pill">
+                <span class="live-dot"></span>
+                <span class="live-label">AUTONOMOUS GLOBAL LIVE FEED</span>
+                <span class="feed-source-count" id="feed-sources-badge">8+ GLOBAL SOURCES CONNECTED</span>
+            </div>
+        </div>
+
+        <div class="header-center">
+            <!-- Threat Level Meter -->
+            <div class="threat-level-card" id="threat-level-card">
+                <div class="threat-label">GLOBAL THREAT LEVEL</div>
+                <div class="threat-status" id="threat-level-display">
+                    <span class="threat-badge-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
+                    <span id="threat-status-text">ANALYZING LIVE...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <!-- Live Global Ingestion Actions -->
+            <button class="btn btn-primary" id="poll-rss-btn" onclick="pollGlobalLiveFeeds()" title="Pull Latest Real-World Global Election Content">
+                <i class="fa-solid fa-rotate"></i> SYNC GLOBAL FEEDS
+            </button>
+
+            <button class="btn btn-outline" id="purge-btn" onclick="purgeAndRefreshLive()" title="Wipe Database and Ingest Completely Fresh Global Stream">
+                <i class="fa-solid fa-broom"></i> PURGE &amp; REFRESH LIVE
+            </button>
+
+            <!-- Audio Alerts Toggle -->
+            <button class="btn btn-icon" id="audio-toggle-btn" onclick="toggleAudio()" title="Toggle Sound Alerts">
+                <i class="fa-solid fa-volume-high" id="audio-icon"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Global Telemetry Bar -->
+    <section class="telemetry-bar">
+        <div class="kpi-metric-card" id="kpi-posts">
+            <div class="kpi-icon"><i class="fa-solid fa-satellite-dish"></i></div>
+            <div class="kpi-details">
+                <span class="kpi-title">LIVE INGESTED POSTS</span>
+                <span class="kpi-value" id="kpi-val-posts">--</span>
+            </div>
+        </div>
+
+        <div class="kpi-metric-card" id="kpi-narratives">
+            <div class="kpi-icon"><i class="fa-solid fa-diagram-project"></i></div>
+            <div class="kpi-details">
+                <span class="kpi-title">CLUSTERED NARRATIVES</span>
+                <span class="kpi-value" id="kpi-val-narratives">--</span>
+            </div>
+        </div>
+
+        <div class="kpi-metric-card" id="kpi-confusion">
+            <div class="kpi-icon"><i class="fa-solid fa-gauge-high"></i></div>
+            <div class="kpi-details">
+                <span class="kpi-title">MEAN CONFUSION INDEX</span>
+                <span class="kpi-value" id="kpi-val-confusion">--</span>
+            </div>
+        </div>
+
+        <div class="kpi-metric-card" id="kpi-cib">
+            <div class="kpi-icon"><i class="fa-solid fa-robot"></i></div>
+            <div class="kpi-details">
+                <span class="kpi-title">SUSPECT INAUTHENTIC NETWORKS</span>
+                <span class="kpi-value" id="kpi-val-cib">--</span>
+            </div>
+        </div>
+
+        <div class="kpi-metric-card" id="kpi-alerts">
+            <div class="kpi-icon"><i class="fa-solid fa-bell"></i></div>
+            <div class="kpi-details">
+                <span class="kpi-title">HIGH-CONFUSION ALERTS</span>
+                <span class="kpi-value" id="kpi-val-alerts">--</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Navigation Ribbon: 8 Workspaces -->
+    <nav class="analyst-nav">
+        <button class="nav-tab active" data-tab="radar" onclick="switchTab('radar')">
+            <i class="fa-solid fa-radar"></i> Threat Radar
+        </button>
+        <button class="nav-tab" data-tab="narratives" onclick="switchTab('narratives')">
+            <i class="fa-solid fa-diagram-project"></i> Narrative Intelligence
+        </button>
+        <button class="nav-tab" data-tab="triage" onclick="switchTab('triage')">
+            <i class="fa-solid fa-list-check"></i> Analyst Triage Queue
+        </button>
+        <button class="nav-tab" data-tab="graph" onclick="switchTab('graph')">
+            <i class="fa-solid fa-circle-nodes"></i> Actor & Propagation Graph
+        </button>
+        <button class="nav-tab" data-tab="map" onclick="switchTab('map')">
+            <i class="fa-solid fa-earth-americas"></i> Global Geospatial Map
+        </button>
+        <button class="nav-tab" data-tab="scanner" onclick="switchTab('scanner')">
+            <i class="fa-solid fa-magnifying-glass-chart"></i> Live OSINT Scanner
+        </button>
+        <button class="nav-tab" data-tab="facts" onclick="switchTab('facts')">
+            <i class="fa-solid fa-scale-balanced"></i> Ground Truth KB
+        </button>
+        <button class="nav-tab" data-tab="reports" onclick="switchTab('reports')">
+            <i class="fa-solid fa-file-shield"></i> Intelligence Dossiers
+        </button>
+    </nav>
+
+    <!-- Main Dynamic Workspace Viewports -->
+    <main class="main-container">
+        <!-- TAB 1: THREAT RADAR -->
+        <div class="tab-pane active" id="tab-radar">
+            <div class="radar-grid">
+                <!-- Left: Recent High-Priority Alerts -->
+                <div class="panel alert-feed-panel">
+                    <div class="panel-header">
+                        <h2><i class="fa-solid fa-bell text-crimson"></i> LIVE GLOBAL THREAT ALERTS</h2>
+                        <span class="badge badge-alert" id="alert-counter">REAL-TIME</span>
+                    </div>
+                    <div class="panel-body scrollable" id="radar-alerts-list">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- Center: Category Threat Distribution Chart -->
+                <div class="panel chart-panel">
+                    <div class="panel-header">
+                        <h2><i class="fa-solid fa-chart-pie text-cyan"></i> GLOBAL DISINFORMATION VECTORS</h2>
+                        <span class="panel-subtitle">By Classification Category</span>
+                    </div>
+                    <div class="panel-body chart-container-box">
+                        <canvas id="categoryDistributionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Right: Platform Spread Distribution -->
+                <div class="panel chart-panel">
+                    <div class="panel-header">
+                        <h2><i class="fa-solid fa-chart-bar text-amber"></i> GLOBAL DISSEMINATION CHANNELS</h2>
+                        <span class="panel-subtitle">Volume per Source Stream</span>
+                    </div>
+                    <div class="panel-body chart-container-box">
+                        <canvas id="platformSpreadChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Live Content Stream Ticker -->
+            <div class="panel live-ticker-panel">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-bolt text-emerald"></i> REAL-TIME INCOMING GLOBAL OSINT STREAM</h2>
+                    <span class="live-pulse-status"><i class="fa-solid fa-circle text-emerald"></i> Streaming Live (All Countries)</span>
+                </div>
+                <div class="panel-body scrollable ticker-container" id="radar-stream-ticker">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: NARRATIVE INTELLIGENCE -->
+        <div class="tab-pane" id="tab-narratives">
+            <div class="narrative-controls-bar">
+                <div class="filter-group">
+                    <label>LIFECYCLE FILTER:</label>
+                    <button class="filter-pill active" onclick="filterNarratives('all')">All</button>
+                    <button class="filter-pill" onclick="filterNarratives('emerging')">Emerging</button>
+                    <button class="filter-pill" onclick="filterNarratives('accelerating')">Accelerating</button>
+                    <button class="filter-pill" onclick="filterNarratives('critical_peak')">Critical Peak</button>
+                    <button class="filter-pill" onclick="filterNarratives('debunked')">Debunked</button>
+                </div>
+                <div class="search-box">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" id="narrative-search-input" placeholder="Search narrative keywords or country..." onkeyup="searchNarratives()">
+                </div>
+            </div>
+
+            <div class="narrative-cards-grid" id="narratives-grid">
+                <!-- Loaded dynamically -->
+            </div>
+        </div>
+
+        <!-- TAB 3: ANALYST TRIAGE QUEUE -->
+        <div class="tab-pane" id="tab-triage">
+            <div class="triage-toolbar">
+                <div class="triage-filters">
+                    <select id="triage-filter-category" onchange="loadTriagePosts()">
+                        <option value="all">All Categories</option>
+                        <option value="voter_suppression">Voter Suppression</option>
+                        <option value="integrity_tampering">Integrity & Tampering</option>
+                        <option value="synthetic_deepfake">Synthetic Deepfakes</option>
+                        <option value="impersonation">Official Impersonation</option>
+                        <option value="premature_results">Premature Results</option>
+                        <option value="voter_intimidation">Voter Intimidation</option>
+                        <option value="legitimate_news">Legitimate News</option>
+                    </select>
+
+                    <select id="triage-filter-platform" onchange="loadTriagePosts()">
+                        <option value="all">All Platforms / Feeds</option>
+                        <option value="news">Global News Wires</option>
+                        <option value="mastodon">Mastodon Social Firehose</option>
+                        <option value="twitter">Twitter / X</option>
+                        <option value="telegram">Telegram</option>
+                        <option value="reddit">Reddit</option>
+                        <option value="web">Web & Forums</option>
+                    </select>
+
+                    <select id="triage-filter-priority" onchange="loadTriagePosts()">
+                        <option value="all">All Priorities</option>
+                        <option value="P0">P0 - Critical Emergency</option>
+                        <option value="P1">P1 - High Threat</option>
+                        <option value="P2">P2 - Medium Concern</option>
+                        <option value="P3">P3 - Low / Nominal</option>
+                    </select>
+
+                    <select id="triage-filter-status" onchange="loadTriagePosts()">
+                        <option value="all">All Triage Statuses</option>
+                        <option value="new">New (Unreviewed)</option>
+                        <option value="investigating">Investigating</option>
+                        <option value="confirmed_disinfo">Confirmed Misinformation</option>
+                        <option value="debunked">Debunked</option>
+                        <option value="escalated">Escalated to Commission</option>
+                        <option value="false_positive">False Positive</option>
+                    </select>
+
+                    <div class="min-confusion-slider">
+                        <span>Min Confusion: <strong id="min-conf-display">0</strong>/100</span>
+                        <input type="range" id="triage-min-confusion" min="0" max="90" value="0" step="5" oninput="updateMinConf(this.value)">
+                    </div>
+                </div>
+
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="triage-search" placeholder="Search country, claim, author..." onkeyup="debounceTriageSearch()">
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table" id="triage-posts-table">
+                    <thead>
+                        <tr>
+                            <th>PRIORITY</th>
+                            <th>CONFUSION</th>
+                            <th>STREAM</th>
+                            <th>AUTHOR & METADATA</th>
+                            <th>CONTENT / CLAIM</th>
+                            <th>COUNTRY / REGION</th>
+                            <th>BOT PROB</th>
+                            <th>STATUS</th>
+                            <th>ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="triage-table-body">
+                        <!-- Loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 4: PROPAGATION & ACTOR GRAPH -->
+        <div class="tab-pane" id="tab-graph">
+            <div class="graph-layout">
+                <div class="graph-viewport-container">
+                    <div class="graph-toolbar">
+                        <div class="graph-legend">
+                            <span class="legend-item"><span class="dot dot-red"></span> Disinfo Narrative</span>
+                            <span class="legend-item"><span class="dot dot-bot"></span> Suspect Inauthentic Account</span>
+                            <span class="legend-item"><span class="dot dot-green"></span> Wire News / Account</span>
+                            <span class="legend-item"><span class="dot dot-purple"></span> Hashtag</span>
+                        </div>
+                        <div class="graph-actions">
+                            <button class="btn btn-sm btn-outline" onclick="initNetworkGraph()"><i class="fa-solid fa-arrows-rotate"></i> Reset Network</button>
+                            <button class="btn btn-sm btn-outline" onclick="zoomGraph(1.2)"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                            <button class="btn btn-sm btn-outline" onclick="zoomGraph(0.8)"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+                        </div>
+                    </div>
+                    <canvas id="network-canvas"></canvas>
+                </div>
+
+                <!-- Network Telemetry Sidebar -->
+                <div class="panel graph-sidebar">
+                    <div class="panel-header">
+                        <h2><i class="fa-solid fa-network-wired text-cyan"></i> NETWORK TOPOLOGY</h2>
+                    </div>
+                    <div class="panel-body">
+                        <div class="metric-row">
+                            <span>Total Entities:</span>
+                            <strong id="graph-stat-nodes">--</strong>
+                        </div>
+                        <div class="metric-row">
+                            <span>Connected Edges:</span>
+                            <strong id="graph-stat-edges">--</strong>
+                        </div>
+                        <div class="metric-row">
+                            <span>Suspect Swarm Clusters:</span>
+                            <strong class="text-crimson" id="graph-stat-cib">--</strong>
+                        </div>
+
+                        <hr class="divider">
+                        <h3 class="sidebar-subtitle"><i class="fa-solid fa-bullhorn"></i> TOP AMPLIFICATION HUBS</h3>
+                        <div class="hub-list" id="graph-top-hubs">
+                            <!-- Loaded dynamically -->
+                        </div>
+
+                        <hr class="divider">
+                        <div id="selected-node-card" class="selected-node-box">
+                            <div class="node-placeholder-text">Click any node in graph to inspect metadata, bot indicators, and connected edges.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: GLOBAL GEOSPATIAL MAP -->
+        <div class="tab-pane" id="tab-map">
+            <div class="map-layout">
+                <div class="map-container-box" id="leaflet-map"></div>
+                
+                <div class="panel map-sidebar">
+                    <div class="panel-header">
+                        <h2><i class="fa-solid fa-earth-americas text-amber"></i> GLOBAL JURISDICTIONS</h2>
+                        <span class="panel-subtitle">By Real-World Activity</span>
+                    </div>
+                    <div class="panel-body scrollable" id="jurisdiction-list">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 6: LIVE OSINT SCANNER -->
+        <div class="tab-pane" id="tab-scanner">
+            <div class="scanner-grid">
+                <!-- Left: Input Form -->
+                <div class="panel scanner-input-panel">
+                    <div class="panel-header">
+                        <h2><i class="fa-solid fa-microchip text-cyan"></i> REAL-TIME GLOBAL OSINT SCANNER</h2>
+                    </div>
+                    <div class="panel-body">
+                        <p class="section-desc">Paste raw text, live tweets/posts, blog articles, or unverified claims from ANY country to execute instant multi-dimensional disinformation classification, claim contradiction verification, and global geographic resolution.</p>
+                        
+                        <div class="form-group">
+                            <label>Content Text / Breaking Claim to Investigate:</label>
+                            <textarea id="scanner-input-text" rows="6" class="form-control" placeholder="Paste breaking claim or article text from any country..."></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col">
+                                <label>Author / Source Handle:</label>
+                                <input type="text" id="scanner-input-author" class="form-control" placeholder="@wire_or_account">
+                            </div>
+                            <div class="form-group col">
+                                <label>Platform / Origin:</label>
+                                <select id="scanner-input-platform" class="form-control">
+                                    <option value="web">Web & News</option>
+                                    <option value="twitter">Twitter / X</option>
+                                    <option value="telegram">Telegram</option>
+                                    <option value="mastodon">Mastodon</option>
+                                    <option value="reddit">Reddit</option>
+                                    <option value="tiktok">TikTok</option>
+                                    <option value="facebook">Facebook</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="btn btn-primary" onclick="runCustomOsintScan()">
+                                <i class="fa-solid fa-magnifying-glass-chart"></i> EXECUTE LIVE OSINT SCAN
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Scan Results -->
+                <div class="panel scanner-results-panel">
+                    <div class="panel-header">
+                        <h2><i class="fa-solid fa-chart-line text-emerald"></i> FORENSIC DIAGNOSTIC REPORT</h2>
+                    </div>
+                    <div class="panel-body" id="scanner-results-container">
+                        <div class="empty-state">
+                            <i class="fa-solid fa-satellite-dish fa-3x text-muted"></i>
+                            <h3>No Active Forensic Scan</h3>
+                            <p>Submit content on the left to run linguistic pattern extraction, threat index calculation, and global geographic origin resolution.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 7: GROUND TRUTH KNOWLEDGE BASE -->
+        <div class="tab-pane" id="tab-facts">
+            <div class="facts-header-bar">
+                <div class="facts-intro">
+                    <h2><i class="fa-solid fa-scale-balanced text-cyan"></i> OFFICIAL ELECTION GROUND TRUTH REPOSITORY</h2>
+                    <p>Verified statutory standards, polling rules, and voting security protocols used by the contradiction engine for real-time claim refutation.</p>
+                </div>
+                <button class="btn btn-primary" onclick="openNewFactModal()">
+                    <i class="fa-solid fa-plus"></i> ADD OFFICIAL GROUND TRUTH
+                </button>
+            </div>
+
+            <div class="facts-grid" id="facts-cards-grid">
+                <!-- Loaded dynamically -->
+            </div>
+        </div>
+
+        <!-- TAB 8: INTELLIGENCE DOSSIERS & REPORTS -->
+        <div class="tab-pane" id="tab-reports">
+            <div class="dossier-layout">
+                <!-- Left: Case List -->
+                <div class="panel case-list-panel">
+                    <div class="panel-header">
+                        <h2><i class="fa-solid fa-folder-open text-amber"></i> ACTIVE OSINT INVESTIGATION DOSSIERS</h2>
+                        <button class="btn btn-sm btn-primary" onclick="openNewCaseModal()"><i class="fa-solid fa-plus"></i> New Dossier</button>
+                    </div>
+                    <div class="panel-body scrollable" id="cases-list-container">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- Right: Intelligence Report Preview / Synthesis -->
+                <div class="panel report-preview-panel">
+                    <div class="panel-header">
+                        <h2><i class="fa-solid fa-file-lines text-cyan"></i> FORMAL THREAT INTELLIGENCE BRIEFING</h2>
+                        <div class="report-actions" id="report-actions-bar" style="display: none;">
+                            <button class="btn btn-sm btn-outline" onclick="copyReportMarkdown()"><i class="fa-solid fa-copy"></i> Copy Markdown</button>
+                            <button class="btn btn-sm btn-primary" onclick="printReport()"><i class="fa-solid fa-print"></i> Export / Print Brief</button>
+                        </div>
+                    </div>
+                    <div class="panel-body scrollable" id="report-content-view">
+                        <div class="empty-state">
+                            <i class="fa-solid fa-file-circle-check fa-3x text-muted"></i>
+                            <h3>Select a Case Dossier</h3>
+                            <p>Choose an investigation case from the left panel to synthesize a full multi-source intelligence briefing with evidence hashes and counter-messaging directives.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Deep Forensic Inspector Modal Drawer -->
+    <div class="modal-overlay" id="forensic-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <span class="badge badge-priority" id="modal-priority-badge">P0</span>
+                    <h2 id="modal-title">FORENSIC CONTENT INSPECTOR</h2>
+                </div>
+                <button class="modal-close" onclick="closeForensicModal()">&times;</button>
+            </div>
+            <div class="modal-body scrollable">
+                <div class="modal-section">
+                    <h3 class="modal-section-title"><i class="fa-solid fa-quote-left text-cyan"></i> MONITORED POST CONTENT</h3>
+                    <div class="raw-content-box" id="modal-post-text">--</div>
+                </div>
+
+                <div class="modal-grid-2">
+                    <div class="modal-section">
+                        <h3 class="modal-section-title"><i class="fa-solid fa-fingerprint text-amber"></i> TELEMETRY &amp; DIGITAL EVIDENCE</h3>
+                        <div class="meta-item"><span>Post ID:</span> <code id="modal-post-id">--</code></div>
+                        <div class="meta-item"><span>Platform:</span> <strong id="modal-platform">--</strong></div>
+                        <div class="meta-item"><span>Author:</span> <strong id="modal-author">--</strong></div>
+                        <div class="meta-item"><span>Country / Region:</span> <span id="modal-location">--</span></div>
+                        <div class="meta-item"><span>Timestamp:</span> <span id="modal-timestamp">--</span></div>
+                        <div class="meta-item"><span>SHA-256 Hash:</span> <code class="hash-code" id="modal-sha256">--</code></div>
+                    </div>
+
+                    <div class="modal-section">
+                        <h3 class="modal-section-title"><i class="fa-solid fa-chart-simple text-crimson"></i> DISINFORMATION METRICS</h3>
+                        <div class="meta-item"><span>Confusion Score:</span> <strong class="text-crimson" id="modal-confusion-score">--/100</strong></div>
+                        <div class="meta-item"><span>Category:</span> <span class="badge" id="modal-category">--</span></div>
+                        <div class="meta-item"><span>Bot Probability:</span> <span id="modal-bot-prob">--</span></div>
+                        <div class="meta-item"><span>Urgency Outrage:</span> <span id="modal-urgency">--</span></div>
+                        <div class="meta-item"><span>Epistemic Uncertainty:</span> <span id="modal-uncertainty">--</span></div>
+                    </div>
+                </div>
+
+                <div class="modal-section" id="modal-contradiction-section">
+                    <h3 class="modal-section-title"><i class="fa-solid fa-scale-unbalanced text-crimson"></i> STATUTORY GROUND TRUTH CONTRADICTION</h3>
+                    <div class="contradiction-alert-box" id="modal-contradiction-box">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <h3 class="modal-section-title"><i class="fa-solid fa-pen-to-square text-emerald"></i> ANALYST TRIAGE &amp; ESCALATION</h3>
+                    <div class="form-row">
+                        <div class="form-group col">
+                            <label>Triage Status:</label>
+                            <select id="modal-triage-status" class="form-control">
+                                <option value="new">New</option>
+                                <option value="investigating">Investigating</option>
+                                <option value="confirmed_disinfo">Confirmed Misinformation</option>
+                                <option value="debunked">Debunked</option>
+                                <option value="escalated">Escalate to Election Commission</option>
+                                <option value="false_positive">False Positive</option>
+                            </select>
+                        </div>
+                        <div class="form-group col">
+                            <label>Priority Level:</label>
+                            <select id="modal-priority-select" class="form-control">
+                                <option value="P0">P0 - Critical</option>
+                                <option value="P1">P1 - High</option>
+                                <option value="P2">P2 - Medium</option>
+                                <option value="P3">P3 - Low</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Analyst Forensic Notes:</label>
+                        <textarea id="modal-analyst-notes" rows="3" class="form-control" placeholder="Document actor attribution, bot ring connection, or escalation details..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeForensicModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="savePostTriage()"><i class="fa-solid fa-floppy-disk"></i> Save Triage Update</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Ground Truth Modal -->
+    <div class="modal-overlay" id="new-fact-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-plus-circle text-cyan"></i> ADD OFFICIAL GROUND TRUTH FACT</h2>
+                <button class="modal-close" onclick="closeNewFactModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Category:</label>
+                    <select id="newfact-category" class="form-control">
+                        <option value="voter_suppression">Voter Suppression</option>
+                        <option value="integrity_tampering">Integrity & Tampering</option>
+                        <option value="synthetic_deepfake">Synthetic Deepfakes</option>
+                        <option value="impersonation">Official Impersonation</option>
+                        <option value="premature_results">Premature Results</option>
+                        <option value="voter_intimidation">Voter Intimidation</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Topic / Regulation Name:</label>
+                    <input type="text" id="newfact-topic" class="form-control" placeholder="e.g. Ballot Signature Verification Standards">
+                </div>
+                <div class="form-group">
+                    <label>Official Statutory Rule:</label>
+                    <textarea id="newfact-rule" rows="3" class="form-control" placeholder="Exact official procedure or law..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label>Country / Jurisdiction:</label>
+                        <input type="text" id="newfact-jurisdiction" class="form-control" value="International">
+                    </div>
+                    <div class="form-group col">
+                        <label>Verification Source (Authority):</label>
+                        <input type="text" id="newfact-source" class="form-control" placeholder="e.g. Electoral Commission / Supreme Court">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Standard Fact-Check Debunk Rebuttal:</label>
+                    <textarea id="newfact-debunk" rows="2" class="form-control" placeholder="FACT CHECK: Official statement ready for rapid deployment..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeNewFactModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitNewFact()"><i class="fa-solid fa-save"></i> Save Ground Truth Rule</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Case Dossier Modal -->
+    <div class="modal-overlay" id="new-case-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-folder-plus text-amber"></i> CREATE INVESTIGATION DOSSIER</h2>
+                <button class="modal-close" onclick="closeNewCaseModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Investigation Title:</label>
+                    <input type="text" id="newcase-title" class="form-control" placeholder="e.g. Investigation into Coordinated Election Disinformation Surge">
+                </div>
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label>Threat Level:</label>
+                        <select id="newcase-threat" class="form-control">
+                            <option value="critical">Critical</option>
+                            <option value="high" selected>High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    <div class="form-group col">
+                        <label>Lead Analyst:</label>
+                        <input type="text" id="newcase-analyst" class="form-control" value="Lead OSINT Analyst">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Executive Threat Summary:</label>
+                    <textarea id="newcase-summary" rows="3" class="form-control" placeholder="Describe the suspected coordinated campaign, origin platform, and target audience..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Recommended Counter-Action:</label>
+                    <textarea id="newcase-action" rows="2" class="form-control" placeholder="Recommended communication directives, trust & safety escalations, or legal notifications..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeNewCaseModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitNewCase()"><i class="fa-solid fa-file-export"></i> Initialize Dossier</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- App Logic Scripts -->
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/radar.js"></script>
+    <script src="/static/js/narratives.js"></script>
+    <script src="/static/js/triage.js"></script>
+    <script src="/static/js/graph.js"></script>
+    <script src="/static/js/map.js"></script>
+    <script src="/static/js/scanner.js"></script>
+    <script src="/static/js/facts.js"></script>
+    <script src="/static/js/reports.js"></script>
+</body>
+</html>
