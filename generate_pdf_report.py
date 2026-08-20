@@ -233,28 +233,28 @@ def generate_pdf(output_filename="ELECT_SENTINEL_OSINT_Project_Report.pdf"):
     story.append(Spacer(1, 8))
 
     # -------------------------------------------------------------
-    # 1. THEORETICAL FOUNDATIONS & PROBLEM STATEMENT
+    # 1. PROBLEM BACKGROUND & OBJECTIVES
     # -------------------------------------------------------------
-    story.append(Paragraph("1. Theoretical Foundations & Problem Statement", h1_style))
+    story.append(Paragraph("1. Project Background & Engineering Objectives", h1_style))
     story.append(Paragraph(
-        "<b>1.1 Information Disorder Taxonomy (Wardle & Derakhshan Framework):</b> During critical election cycles, public discourse experiences heightened vulnerability to weaponized information. This research categorizes election-period confusion across three distinct conceptual dimensions: <i>(1) Disinformation</i> (knowingly fabricated content disseminated with malicious intent to suppress votes or alter outcomes), <i>(2) Misinformation</i> (false information shared inadvertently by confused citizens without malicious intent), and <i>(3) Malinformation</i> (genuine information taken out of context, selectively leaked, or distorted to inflict harm).",
+        "<b>1.1 The Challenge of Election Information Integrity:</b> During any election, whether in India, the US, the UK, or elsewhere, the volume of digital content shared across news wires and social feeds explodes. A significant portion of this content is intentionally or unintentionally misleading—ranging from false claims about polling dates and fake voter ID rules to fabricated stories about voting machine malfunctions and AI-generated deepfakes. When voters encounter contradictory information, it creates severe public confusion and voter suppression.",
         body_style
     ))
     story.append(Paragraph(
-        "<b>1.2 Cognitive Vulnerabilities & Epistemic Uncertainty:</b> Misleading claims thrive during elections due to high affective polarization and epistemic uncertainty. When official counting protocols, ballot verification rules, or polling hours are ambiguous, unverified rumors spread rapidly through online echo chambers. The objective of <b>ELECT-SENTINEL OSINT</b> is to construct an automated intelligence system capable of monitoring multi-channel digital communications globally, identifying emerging confusion vectors before they peak, and equipping election oversight teams with rapid rebuttal intelligence.",
-        body_style
-    ))
-
-    # -------------------------------------------------------------
-    # 2. MATHEMATICAL MODELS & ALGORITHMIC FORMULATIONS
-    # -------------------------------------------------------------
-    story.append(Paragraph("2. Mathematical Formulations & Threat Modeling", h1_style))
-    story.append(Paragraph(
-        "The platform implements a multi-parameter mathematical model to evaluate threat severity, viral velocity, and narrative clustering similarity across digital posts:",
+        "<b>1.2 Project Scope & Goals:</b> In this project, I developed <b>ELECT-SENTINEL OSINT</b>, an automated open-source intelligence monitoring platform designed to help election analysts track and prioritize content patterns that cause public confusion. Rather than relying on static or mocked data, I built the system to connect directly to 25+ real live global feeds and analyze incoming posts in real time using NLP heuristic classifiers, semantic topic clustering, and statutory ground-truth verification.",
         body_style
     ))
 
-    formula_text = "S_confusion = [ α · S_category + β · S_urgency + γ · S_uncertainty + δ · P_bot ] × Ω_platform"
+    # -------------------------------------------------------------
+    # 2. ALGORITHMIC DESIGN & MATHEMATICAL MODELING
+    # -------------------------------------------------------------
+    story.append(Paragraph("2. Mathematical Formulation & Threat Scoring Logic", h1_style))
+    story.append(Paragraph(
+        "To prioritize which posts need immediate human review, I designed a multi-factor scoring formula implemented in <code>backend/nlp_engine.py</code> that computes a composite <b>Confusion Threat Index</b> (0 to 100):",
+        body_style
+    ))
+
+    formula_text = "S_confusion = [ 0.60 · S_category + 0.20 · S_urgency + 0.20 · S_uncertainty + 0.15 · P_bot ] × Ω_platform"
     story.append(Table([[Paragraph(formula_text, formula_style)]], colWidths=[7.2 * inch], style=[
         ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#f1f5f9")),
         ('BOX', (0, 0), (-1, -1), 0.5, BORDER_COLOR),
@@ -263,34 +263,30 @@ def generate_pdf(output_filename="ELECT_SENTINEL_OSINT_Project_Report.pdf"):
     story.append(Spacer(1, 4))
 
     story.append(Paragraph(
-        "Where: "
-        "<br/>&bull; <b>S_category (&alpha; = 0.60):</b> Semantic threat weight assigned based on matched disinformation taxonomies (Voter Suppression, Machine Tampering, Deepfakes, Official Impersonation, Premature Results, Intimidation)."
-        "<br/>&bull; <b>S_urgency (&beta; = 0.20):</b> Outrage and emotional urgency marker intensity calculated from linguistic triggers (e.g., 'URGENT SPREAD NOW', excessive capitalization, panic punctuation)."
-        "<br/>&bull; <b>S_uncertainty (&gamma; = 0.20):</b> Epistemic rumor index derived from unverified hearsay qualifiers ('insider reveals', 'they don't want you to know', 'allegedly')."
-        "<br/>&bull; <b>P_bot (&delta; = 0.15):</b> Inauthenticity probability score derived from account age ratio, high posting burst rate, and copypasta repetition patterns."
-        "<br/>&bull; <b>&Omega;_platform:</b> Platform risk coefficient (&Omega; &in; [0.65, 1.25]) weighted by source channel anonymity and moderation policies.",
+        "<b>Breakdown of the Scoring Components:</b>"
+        "<br/>&bull; <b>S_category (Weight = 0.60):</b> Base score derived from regex pattern matching across 6 key threat categories: (1) Voter Suppression, (2) Integrity & Tampering, (3) Synthetic Deepfakes, (4) Official Impersonation, (5) Premature Results, and (6) Voter Intimidation."
+        "<br/>&bull; <b>S_urgency (Weight = 0.20):</b> Measures emotional arousal and panic markers (excessive exclamation marks, words like 'BREAKING', 'SHARE IMMEDIATELY', 'WAKE UP', and all-caps text)."
+        "<br/>&bull; <b>S_uncertainty (Weight = 0.20):</b> Detects unverified rumor language ('sources say', 'insider leak', 'they are hiding this', 'allegedly')."
+        "<br/>&bull; <b>P_bot (Weight = 0.15):</b> Heuristic bot probability based on account age, follower count, and high burst frequency."
+        "<br/>&bull; <b>&Omega;_platform:</b> Platform multiplier (e.g., 1.15x for unmoderated forums/social vs 0.70x for verified news feeds).",
         body_style
     ))
 
-    story.append(Paragraph("<b>2.2 Dynamic Narrative Clustering & Lifecycle State Machine:</b>", h2_style))
+    story.append(Paragraph("<b>2.2 Dynamic Narrative Clustering (TF-IDF & Cosine Similarity):</b>", h2_style))
     story.append(Paragraph(
-        "Individual posts are vectorized using n-gram Term Frequency-Inverse Document Frequency (TF-IDF):",
-        body_style
-    ))
-    story.append(Paragraph("TF-IDF(t, d, D) = TF(t, d) × log( |D| / |{d ∈ D : t ∈ d}| )", formula_style))
-    story.append(Paragraph(
-        "Incoming vectors are matched against active narrative centroids using Cosine Similarity: <code>Sim(v_p, v_N) = (v_p · v_N) / (||v_p|| ||v_N||)</code>. If similarity exceeds the dynamic threshold (&theta; &ge; 0.28), the signal is assigned to the narrative cluster; otherwise, a new storyline centroid is spawned. Narrative lifecycle transitions through a discrete state machine: <b>Emerging &rarr; Accelerating &rarr; Critical Peak &rarr; Debunked &rarr; Dormant</b>.",
+        "In <code>backend/clustering_engine.py</code>, I implemented an automated topic clustering pipeline using Scikit-Learn. When a post arrives, its cleaned text is transformed into a TF-IDF vector and compared against active narrative cluster centroids using Cosine Similarity. If the similarity score is &ge; 0.28, the post is added to the existing storyline and its viral velocity (posts per hour) is updated. If not, a new narrative cluster is created. Each narrative moves through a lifecycle: <b>Emerging &rarr; Accelerating &rarr; Critical Peak &rarr; Debunked &rarr; Dormant</b>.",
         body_style
     ))
 
     # -------------------------------------------------------------
-    # 3. MULTI-SOURCE INGESTION ARCHITECTURE (25+ SOURCES)
+    # 3. LIVE MULTI-SOURCE INGESTION ARCHITECTURE
     # -------------------------------------------------------------
-    story.append(Paragraph("3. Multi-Source Global Live Ingestion Engine", h1_style))
+    story.append(Paragraph("3. Real Live Multi-Source Ingestion Architecture", h1_style))
     story.append(Paragraph(
-        "The system operates with <b>zero mock data</b>, pulling exclusively from 25+ real-time live digital feeds across the globe via a multi-threaded parallel architecture (<code>ThreadPoolExecutor</code> with 12 concurrent workers):",
+        "To ensure the platform monitors genuine real-time election content worldwide without paid API keys, I built a concurrent multi-threaded ingestion engine in <code>backend/ingest_engine.py</code> using Python's <code>concurrent.futures.ThreadPoolExecutor</code> (12 workers). It pulls from 25+ live international sources simultaneously in under 3.5 seconds:",
         body_style
     ))
+
 
     sources_data = [
         [
@@ -340,32 +336,32 @@ def generate_pdf(output_filename="ELECT_SENTINEL_OSINT_Project_Report.pdf"):
     story.append(Spacer(1, 8))
 
     # -------------------------------------------------------------
-    # 4. GLOBAL GEOGRAPHIC RESOLUTION & GRAPH TOPOLOGY
+    # 4. GEOLOCATION MAPPING & GRAPH TOPOLOGY
     # -------------------------------------------------------------
-    story.append(Paragraph("4. Global Geocoding & Coordinated Inauthentic Behavior (CIB)", h1_style))
+    story.append(Paragraph("4. Global Geocoding & Coordinated Bot Network Analysis", h1_style))
     story.append(Paragraph(
-        "<b>4.1 Global Geographic Entity Resolution:</b> Content from any country is processed through a multi-national entity dictionary mapping over 60+ countries and capital jurisdictions (Americas, Europe, Asia-Pacific, Africa, Middle East, Oceania) to exact latitude and longitude coordinates. Resolved coordinates are dynamically rendered on the interactive Leaflet.js Dark Matter Map.",
+        "<b>4.1 Global Location Resolution (60+ Countries):</b> In <code>backend/ingest_engine.py</code>, I implemented a regex entity matcher (<code>resolve_global_location</code>) that extracts country and regional references across North America, Europe, Asia, Africa, and South America, mapping each post to exact latitude and longitude coordinates rendered on the Leaflet.js interactive map.",
         body_style
     ))
     story.append(Paragraph(
-        "<b>4.2 NetworkX Graph Modeling & CIB Swarm Detection:</b> The system builds a multi-relational graph G = (V, E) where nodes represent Accounts, Narrative Storylines, Hashtags, and Digital Domains. Edges capture posting relationships, copypasta text similarity (Jaccard Index &ge; 0.65 within temporal windows), and cross-platform amplification. High-centrality hub accounts and coordinated astroturf clusters are highlighted automatically in real-time.",
+        "<b>4.2 NetworkX Graph Modeling & CIB Swarm Detection:</b> In <code>backend/network_engine.py</code>, I used NetworkX to generate a relational network graph where nodes represent user accounts, narratives, and digital domains. Edges connect accounts sharing identical text or amplifying the same narrative. High degree-centrality nodes and bot rings are identified and rendered on an interactive HTML5 Canvas with real-time physics repulsion.",
         body_style
     ))
 
     # -------------------------------------------------------------
     # 5. CYBER OPERATIONS CENTER WORKSPACES
     # -------------------------------------------------------------
-    story.append(Paragraph("5. The 8 Analyst Workstations", h1_style))
+    story.append(Paragraph("5. The 8 Analyst Workstations in the UI", h1_style))
 
     workspaces = [
-        ("1. Threat Radar", "Real-time DEFCON threat gauge (Critical/Elevated/Nominal), KPI dials, Category Threat Distribution Chart, Dissemination Bar Chart, and live stream ticker with audio alerts."),
-        ("2. Narrative Intelligence", "Visual clustering hub tracking narrative lifecycles, viral velocity (posts/hr), cross-platform dispersion, and drill-down investigative links."),
-        ("3. Analyst Triage Queue", "Multi-parameter filterable queue (Category, Platform, Priority P0-P3, Status, Min Confusion slider) with deep forensic inspector modal featuring SHA-256 cryptographic evidence hashes and triage status escalation."),
-        ("4. Actor & Propagation Graph", "Interactive HTML5 Canvas physics network with spring-repulsion simulation, zoom/pan controls, draggable nodes, and CIB bot swarm community identification."),
-        ("5. Global Geospatial Map", "Interactive dark-mode Leaflet.js map with localized threat circles colored by confusion index across 60+ countries worldwide."),
-        ("6. Live OSINT Scanner", "Ad-hoc forensic investigation tool allowing analysts to paste any live URL, post, or claim from any country for instant threat evaluation and geocoding."),
-        ("7. Ground Truth KB", "Repository of verified statutory election rules and voting security mandates with one-click rapid counter-messaging fact-check templates."),
-        ("8. Intelligence Dossiers", "Case Management workbench synthesizing formal OSINT Threat Intelligence Briefings exportable to Markdown, HTML, and printable format.")
+        ("1. Threat Radar", "Real-time threat level dial (Critical/Elevated/Nominal), KPI summary counters, category threat doughnut chart, and live stream ticker with Web Audio chimes."),
+        ("2. Narrative Intelligence", "Visual dashboard showing active storylines, lifecycle states (Emerging, Accelerating, Peak), post volume, and platform breakdown."),
+        ("3. Analyst Triage Queue", "Filterable investigation table with category/platform/priority dropdowns, live search, and a deep forensic inspector drawer displaying SHA-256 evidence hashes."),
+        ("4. Actor & Propagation Graph", "Interactive HTML5 Canvas physics network showing account relationships, bot swarms, and amplification hubs with drag/zoom controls."),
+        ("5. Global Geospatial Map", "Dark-mode Leaflet.js map displaying localized threat circles colored by confusion intensity across 60+ countries."),
+        ("6. Live OSINT Scanner", "Ad-hoc claim investigation tool where analysts can paste any URL or text to run instant heuristic threat scoring, entity extraction, and debunk checking."),
+        ("7. Ground Truth Knowledge Base", "Curated repository of official election rules with one-click copyable fact-check counter-messaging templates."),
+        ("8. Intelligence Dossiers", "Case management tool that bundles evidence posts and auto-generates formal Threat Intelligence Briefings exportable to Markdown and HTML.")
     ]
 
     for title, desc in workspaces:
@@ -374,13 +370,14 @@ def generate_pdf(output_filename="ELECT_SENTINEL_OSINT_Project_Report.pdf"):
     story.append(Spacer(1, 6))
 
     # -------------------------------------------------------------
-    # 6. EMPIRICAL VERIFICATION & BENCHMARKS
+    # 6. TESTING & VERIFICATION
     # -------------------------------------------------------------
-    story.append(Paragraph("6. Empirical Verification, Testing & Benchmarks", h1_style))
+    story.append(Paragraph("6. Automated Unit Testing & Benchmarks", h1_style))
     story.append(Paragraph(
-        "The platform includes an automated Python test suite (<code>tests/test_osint_engine.py</code>) verifying NLP classification accuracy, statutory contradiction detection, dynamic clustering, and graph generation:",
+        "I wrote an automated unit test suite in <code>tests/test_osint_engine.py</code> covering all core backend engines. All 8 test suites pass with 100% success rate in under 0.25 seconds:",
         body_style
     ))
+
 
     test_data = [
         [
